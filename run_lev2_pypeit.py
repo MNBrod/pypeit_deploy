@@ -63,7 +63,7 @@ if __name__ == "__main__":
     
     pargs = get_parsed_args()
     
-    generate_pypeit_files(pargs.inst)
+    generate_pypeit_files(pargs)
     
     setup_files = Path(pargs.input) / 'setup_files'
     pypeit_files = setup_files.rglob('*.pypeit')
