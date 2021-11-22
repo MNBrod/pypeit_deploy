@@ -20,24 +20,26 @@ instrument_options = {
 def get_parsed_args():
     
     parser = ArgumentParser()
+
     inst_options = ", ".join(instrument_options.keys())
-    parser.add_argument('inst', help=f'Options are: [{inst_options}]')
-    parser.add_argument('-i', '--input-dir', dest='input')
-    parser.add_argument('-o', '--output-dir', dest='output')
-    parser.add_argument('-r', '--root', dest='root')
+    default_input = os.getcwd()
+    default_output = os.path.join(default_input, "redux")
+    
+    parser.add_argument('inst', help=f'Instrument. Options are: [{inst_options}]')
+    parser.add_argument('-i', '--input-dir', dest='input', default=default_input, help='Path to raw files. Defaults to current directory')
+    parser.add_argument('-o', '--output-dir', dest='output', default=default_output, help='Directory to put output in. Defaults to ./redux')
+    parser.add_argument('-r', '--root', dest='root', help='Base root of the files. E.g. "DE.", "KB.", "kb"')
     parser.add_argument('-n', '--num-proc', dest='num_proc', help='number of processes to launch')
-    parser.add_argument('--setup-only', dest='setup', default=False)
+    parser.add_argument('--setup-only', dest='setup', action='store_true', help="Only create the pypeit files, don't reduce them")
     
     pargs =  parser.parse_args()
+
+    print(pargs.setup)
 
     if pargs.root is None:
         pargs.root = instrument_options[pargs.inst]
 
-    if pargs.input is None:
-        pargs.input = os.getcwd()
-        
-    if pargs.output is None:
-        pargs.output = os.path.join(pargs.input, "redux")
+    return pargs
 
 def generate_pypeit_files(pargs):    
 
