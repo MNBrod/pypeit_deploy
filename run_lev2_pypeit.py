@@ -42,7 +42,8 @@ def get_parsed_args():
 def generate_pypeit_files(pargs):    
 
     setup_dir = os.path.join(pargs.input, "setup_files")
-    ps = PypeItSetup.from_file_root(pargs.root, pargs.inst, extension=".fits", output_path=setup_dir)
+    root = os.path.join(pargs.input, pargs.root)
+    ps = PypeItSetup.from_file_root(root, pargs.inst, extension=".fits", output_path=setup_dir)
     ps.user_cfg = ['[rdx]', 'ignore_bad_headers = True']
 
     ps.run(setup_only=False, calibration_check=False, sort_dir=setup_dir, obslog=True)
