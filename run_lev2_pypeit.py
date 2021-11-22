@@ -10,8 +10,8 @@ from pypeit.scripts import run_pypeit
 from yaml import parse
 
 instrument_options = {
-    "keck_deimos" : "DE."
-    # "keck_mosfire",
+    "keck_deimos" : "DE.",
+    # "keck_mosfire" : "MO.",
     # "keck_nires",
     # "keck_hires",
     # "keck_esi"
@@ -20,13 +20,13 @@ instrument_options = {
 def get_parsed_args():
     
     parser = ArgumentParser()
-    inst_options = "\n    ".join(instrument_options.keys())
-    parser.add_argument('inst', help=f'Options are: {inst_options}')
-    parser.add_argument('-i', '--input-dir', source='input')
-    parser.add_argument('-o', '--output-dir', source='output')
-    parser.add_argument('-r', '--root', source='root')
-    parser.add_argument('-n', '--num-proc', source='num_proc', help='number of processes to launch')
-    parser.add_argument('--setup-only', source='setup', default=False)
+    inst_options = ", ".join(instrument_options.keys())
+    parser.add_argument('inst', help=f'Options are: [{inst_options}]')
+    parser.add_argument('-i', '--input-dir', dest='input')
+    parser.add_argument('-o', '--output-dir', dest='output')
+    parser.add_argument('-r', '--root', dest='root')
+    parser.add_argument('-n', '--num-proc', dest='num_proc', help='number of processes to launch')
+    parser.add_argument('--setup-only', dest='setup', default=False)
     
     pargs =  parser.parse_args()
 
@@ -35,6 +35,7 @@ def get_parsed_args():
 
     if pargs.input is None:
         pargs.input = os.getcwd()
+        
     if pargs.output is None:
         pargs.output = os.path.join(pargs.input, "redux")
 
