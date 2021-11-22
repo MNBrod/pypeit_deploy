@@ -34,8 +34,6 @@ def get_parsed_args():
     
     pargs =  parser.parse_args()
 
-    print(pargs.setup)
-
     if pargs.root is None:
         pargs.root = instrument_options[pargs.inst]
 
@@ -65,10 +63,7 @@ if __name__ == "__main__":
     
     pargs = get_parsed_args()
     
-    generate_pypeit_files(pargs.inst,
-                            input_dir = pargs.input,
-                            output_dir = pargs.output,
-                            root = pargs.root)
+    generate_pypeit_files(pargs.inst)
     
     setup_files = Path(pargs.input) / 'setup_files'
     pypeit_files = setup_files.rglob('*.pypeit')
