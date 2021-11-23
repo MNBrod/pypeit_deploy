@@ -1,3 +1,4 @@
+from copy import copy
 from pathlib import Path
 import os
 from multiprocessing import Pool
@@ -71,12 +72,14 @@ if __name__ == "__main__":
     generate_pypeit_files(pargs)
     
     setup_files = Path(pargs.input) / 'setup_files'
-    pypeit_files = list(setup_files.rglob('*.pypeit'))
+    pypeit_files = list(setup_files.rglob('/*/*.pypeit'))
     args = []
 
     print("Found the following .pypeit files:")
     for f in pypeit_files:
         print(f'    {f}')
+        new_pargs = copy(pargs)
+        new_pargs.output = os.path.join(pargs.output, os.path.basename(f))
         args.append((f, pargs))
     
     print(f'Args are:')
