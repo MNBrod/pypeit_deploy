@@ -80,7 +80,7 @@ if __name__ == "__main__":
         args.append((f, pargs))
 
     if not pargs.setup:
-        print(f"Launching {pargs.num_proc} processes to reduce {len(setup_files)} configurations")
+        print(f"Launching {pargs.num_proc} processes to reduce {len(pypeit_files)} configurations")
         with Pool(processes=pargs.num_proc) as pool:
             pool.starmap(func=run_pypeit, iterable=args)
 
