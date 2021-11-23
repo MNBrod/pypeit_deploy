@@ -43,11 +43,14 @@ def generate_pypeit_files(pargs):
 
     setup_dir = os.path.join(pargs.input, "setup_files")
     root = os.path.join(pargs.input, pargs.root)
-    print(f"Using root {root}")
+
+    print(f'Looking for files matching {root}*.fits*')
+    print(f'Outputs will be saved om {setup_dir}')
+
     ps = PypeItSetup.from_file_root(root, pargs.inst, extension=".fits", output_path=setup_dir)
     ps.user_cfg = ['[rdx]', 'ignore_bad_headers = True']
 
-    ps.run(setup_only=False, calibration_check=False, sort_dir=setup_dir, obslog=True)
+    ps.run(setup_only=True, calibration_check=False, sort_dir=setup_dir, obslog=True)
 
     ps.fitstbl.write_pypeit(setup_dir, configs='all')
 
