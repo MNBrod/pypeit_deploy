@@ -30,7 +30,7 @@ def get_parsed_args():
     parser.add_argument('-i', '--input-dir', dest='input', default=default_input, help='Path to raw files. Defaults to current directory')
     parser.add_argument('-o', '--output-dir', dest='output', default=default_output, help='Directory to put output in. Defaults to ./redux')
     parser.add_argument('-r', '--root', dest='root', help='Base root of the files. E.g. "DE.", "KB.", "kb"')
-    parser.add_argument('-n', '--num-proc', dest='num_proc', help='number of processes to launch')
+    parser.add_argument('-n', '--num-proc', dest='num_proc', type=int, help='number of processes to launch')
     parser.add_argument('--setup-only', dest='setup', action='store_true', help="Only create the pypeit files, don't reduce them")
     
     pargs =  parser.parse_args()
