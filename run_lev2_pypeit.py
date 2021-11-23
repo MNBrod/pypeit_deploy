@@ -3,6 +3,7 @@ from pathlib import Path
 import os
 from multiprocessing import Pool
 from argparse import ArgumentParser
+import subprocess
 from numpy import source
 
 from pypeit.pypeitsetup import PypeItSetup
@@ -59,11 +60,25 @@ def run_pypeit(pypeit_file, pargs):
 
     print(f"Processing config from {str(pypeit_file)}")
     logname = os.path.splitext(pypeit_file)[0] + '.log'
-    pypeIt = pypeit.PypeIt(pypeit_file, verbosity=1,
-                        redux_path=pargs.output,
-                        logname=logname)
-    pypeIt.reduce_all()
-    print(f"Completed {pypeit_file}")
+    logpath = os.path.join(pargs.output, logname)
+    f = open(logpath, 'w+')
+    outputs = os.path.join(pargs.output, os.path.splitext(pypeit_file)[0])
+    args = ['run_pypeit']
+    args += [pypeit_file]
+    args += ['-r', str(outputs)]
+    args += ['-o']
+    proc = subprocess.run(args, stdout=f, stderr=f)
+    # pypeIt = pypeit.PypeIt(pypeit_file, verbosity=1,
+    #                     redux_path=pargs.output,
+    #                     logname=logname)
+    # pypeIt.reduce_all()
+
+    if proc.returncode is not 0:
+        print(f"Error encountered while reducing {pypeit_file}")
+        print(f"Log can be found at {logpath}")
+    else:
+        print(f"Reduced {pypeit_file}")
+    f.close()
 
 if __name__ == "__main__":
     
@@ -86,8 +101,18 @@ if __name__ == "__main__":
     
 
     if not pargs.setup:
-        print(f"Launching {pargs.num_proc if pargs.num_proc else os.cpu_count()} processes to reduce {len(pypeit_files)} configurations")
-        with Pool(processes=pargs.num_proc) as pool:
+        num = pargs.num_proc if pargs.num_proc else os.cpu_count() - 1
+        print(f"Launching {num} processes to reduce {len(pypeit_files)} configurations")
+
+        # current_active_procs = 0
+        # file_idx = 0
+        # while file_idx < len(pypeit_files):
+        #     if current_active_procs < num:
+        #         run_pypeit(pypeit_files[file_idx], pargs)
+        #         file_idx += 1
+        #         current_active_procs += 1
+
+        with Pool(processes=num) as pool:
             pool.starmap(func=run_pypeit, iterable=args)
 
 
