@@ -72,7 +72,7 @@ if __name__ == "__main__":
     generate_pypeit_files(pargs)
     
     setup_files = Path(pargs.input) / 'setup_files'
-    pypeit_files = list(setup_files.glob('/*/*.pypeit'))
+    pypeit_files = list(setup_files.rglob(f'{pargs.inst}_?.pypeit'))
     args = []
 
     print("Found the following .pypeit files:")
