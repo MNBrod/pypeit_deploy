@@ -71,16 +71,19 @@ if __name__ == "__main__":
     generate_pypeit_files(pargs)
     
     setup_files = Path(pargs.input) / 'setup_files'
-    pypeit_files = [setup_files.rglob('*.pypeit')]
+    pypeit_files = list(setup_files.rglob('*.pypeit'))
     args = []
 
     print("Found the following .pypeit files:")
     for f in pypeit_files:
         print(f'    {f}')
         args.append((f, pargs))
+    
+    print(f'Args are:')
+    
 
     if not pargs.setup:
-        print(f"Launching {pargs.num_proc} processes to reduce {len(pypeit_files)} configurations")
+        print(f"Launching {pargs.num_proc if pargs.num_proc else os.cpu_count()} processes to reduce {len(pypeit_files)} configurations")
         with Pool(processes=pargs.num_proc) as pool:
             pool.starmap(func=run_pypeit, iterable=args)
 
