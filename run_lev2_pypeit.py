@@ -176,7 +176,7 @@ def get_parsed_args():
     return pargs
 
 
-if __name__ == "__main__":
+def main():
 
     
     # Parse the arguments
@@ -219,3 +219,6 @@ if __name__ == "__main__":
         with Pool(processes=num) as pool:
             pool.starmap(func=run_pypeit_helper, iterable=args)
 
+
+if __name__ == '__main__':
+    main()
