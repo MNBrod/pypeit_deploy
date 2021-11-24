@@ -1,56 +1,23 @@
 from copy import copy
+from datetime import datetime
 from pathlib import Path
 import os
+import sys
 import requests
 from multiprocessing import Pool
 from argparse import ArgumentParser
+from configparser import ConfigParser
 import subprocess
 
 from pypeit.pypeitsetup import PypeItSetup
 
-# List of valid instrument options and the file prefix associated
-instrument_options = {
-    "keck_deimos" : "DE.",
-    "keck_mosfire" : "MF.",
-    # "keck_nires" : "",
-    # "keck_hires" : "",
-    # "keck_esi" : ""
-}
 
-def get_parsed_args():
-    """Returns the parsed command line arguments
-
-    Returns
-    -------
-    argparse NameSpace
-        contains all of the parsed arguments
-    """
-    
-    parser = ArgumentParser()
-
-    inst_options = ", ".join(instrument_options.keys())
-    
-    # If nothing else is supplied, script will look for data in cwd
-    default_input = os.getcwd()
-    default_output = os.path.join(default_input, "redux")
-    
-    parser.add_argument('inst', help=f'Instrument. Options are: [{inst_options}]')
-    parser.add_argument('-i', '--input-dir', dest='input', default=default_input, help='Path to raw files. Defaults to current directory')
-    parser.add_argument('-o', '--output-dir', dest='output', default=default_output, help='Directory to put output in. Defaults to ./redux')
-    parser.add_argument('-r', '--root', dest='root', help='Base root of the files. E.g. "DE.", "KB.", "kb"')
-    parser.add_argument('-n', '--num-proc', dest='num_proc', type=int, help='number of processes to launch')
-    parser.add_argument('--setup-only', dest='setup', action='store_true', help="Only create the pypeit files, don't reduce them")
-    
-    pargs =  parser.parse_args()
-
-    # If no root is specified, get it from the instruments list
-    if pargs.root is None:
-        pargs.root = instrument_options[pargs.inst]
-
-    return pargs
+###
+##### PypeIt Stuff
+###
 
 
-def generate_pypeit_files(pargs):   
+def generate_pypeit_files(pargs, cfg):   
     """Creates the a .pypeit file for every configuration identified in the input files
 
     Parameters
@@ -59,7 +26,7 @@ def generate_pypeit_files(pargs):
         Should be the output from get_parsed_args()
     """     
 
-    setup_dir = os.path.join(pargs.input, "setup_files")
+    setup_dir = os.path.join(pargs.input, "pypeit_files")
     root = os.path.join(pargs.input, pargs.root)
 
     print(f'Looking for files matching {root}*.fits*')
@@ -76,7 +43,7 @@ def generate_pypeit_files(pargs):
     ps.fitstbl.write_pypeit(setup_dir, configs='all')
 
 
-def run_pypeit(pypeit_file, pargs):
+def run_pypeit_helper(pypeit_file, pargs, cfg):
     """Runs a PypeIt reduction off of a specific .pypeit file, using the io
     parameters in pargs.
 
@@ -113,18 +80,22 @@ def run_pypeit(pypeit_file, pargs):
         print(f"Log can be found at {logpath}")
     else:
         print(f"Reduced {pypeit_file}")
-        # Send the http notice here
+        alert_RTI(outputs, pargs, cfg)
     f.close()
 
-def alert_RTI(file, url, config, instrument):
+
+###
+##### RTI Stuff
+###
+
+
+def alert_RTI(directory, pargs, cfg):
 
     def get_url(url, data):
         try:
             res = requests.get(url,
                                params = data, 
-                               auth = (config.user,
-                                       config.pw)
-                                )
+                               auth = (cfg.user, cfg.pw))
             print(f"Sending {res.request.url}")
         except requests.exceptions.RequestException as e:
             print(f"Error caught while posting to {url}:")
@@ -132,36 +103,102 @@ def alert_RTI(file, url, config, instrument):
             return None
         return res
     
-    data_directory = ""
+    data_directory = pargs.output
     
-    print(f"Alerting RTI that {file} is ready for ingestion")
+    print(f"Alerting RTI that {directory} is ready for ingestion")
 
-    url = url
+    url = cfg['RTI'].url
+
     data = {
-        'instrument': instrument,
-        'koaid': "KOAID_HERE",
-        'ingesttype': config.rti.rti_ingesttype,
+        'instrument': pargs.inst,
+        'koaid': "KOAID_HERE", # This won't be KOAID anymore, will it?
+        'ingesttype': cfg['RTI']['rti_ingesttype'],
         'datadir': str(data_directory),
-        'start': str(config.action.args.ingest_time),
-        'reingest': config.rti.rti_reingest,
-        'testonly': config.rti.rti_testonly,
-        'dev': config.rti.rti_dev
+        'start': str(cfg.start_time),
+        'reingest': cfg['RTI']['rti_reingest'],
+        'testonly': cfg['RTI']['rti_testonly'],
+        'dev': cfg['RTI']['rti_dev']
     }
     
    
     res = get_url(url, data)
     
 
+###
+##### Script Stuff
+###
+
+def get_config(cfg_file):
+
+    cfg = ConfigParser(cfg_file)
+    
+    inst_options = cfg['INSTRUMENTS']['keck_inst_names'].split(' ')
+    inst_pypeit = cfg['INSTRUMENTS']['pypeit_inst_names'].split(' ')
+    inst_roots = cfg['INSTRUMENTS']['roots'].split(' ')
+    cfg.inst_opts = {
+        inst_options[i] : {
+            'pypeit_name' : inst_pypeit[i],
+            'root' : inst_roots[i]
+        }
+    for i in range(len(inst_options))}
+
+    cfg.start_time = datetime.utcnow()
+
+    return cfg
+
+def get_parsed_args():
+    """Returns the parsed command line arguments
+
+    Returns
+    -------
+    argparse NameSpace
+        contains all of the parsed arguments
+    """
+    
+    parser = ArgumentParser()
+    
+    # If nothing else is supplied, script will look for data in cwd
+    default_input = os.getcwd()
+    default_output = os.path.join(default_input, "redux")
+
+    parser.add_argument('inst', help=f'Instrument choice. To see availble instruments, use --instrument-options')
+
+    parser.add_argument('-i', '--input-dir', dest='input', default=default_input, help='Path to raw files. Defaults to current directory')
+    parser.add_argument('-o', '--output-dir', dest='output', default=default_output, help='Directory to put output in. Defaults to ./redux')
+    parser.add_argument('-r', '--root', dest='root', help='Base root of the files. E.g. "DE.", "KB.", "kb". If none, will attempt to find a suitable root from the config.')
+    parser.add_argument('-n', '--num-proc', dest='num_proc', type=int, help='number of processes to launch')
+    parser.add_argument('-c', '--config', dest='cfg_file', default='./pypeit_lev2.ini', help='Config file to use')
+    parser.add_argument('--setup-only', dest='setup', action='store_true', help="Only create the pypeit files, don't reduce them")
+    parser.add_argument('--instrument-options', dest='opts', action='store_true', help='prints the instruments this script can reduce')
+    
+    pargs =  parser.parse_args()
+
+    return pargs
+
 
 if __name__ == "__main__":
+
     
     # Parse the arguments
     pargs = get_parsed_args()
     
+    # Get configuration
+    cfg = ConfigParser(pargs.cfg_file)
+
+    if pargs.opts:
+        inst_options = "', ".join(cfg.inst_opts.keys())
+        print(f"Options are: '{inst_options}'")
+        sys.exit(0)
+
+    # If no root is specified, get it from the instruments list
+    if pargs.root is None:
+        pargs.root = cfg.inst_opts[pargs.inst]['root']
+
+
     # Create all the pypeit files
     generate_pypeit_files(pargs)
     
-    setup_files = Path(pargs.input) / 'setup_files'
+    setup_files = Path(pargs.input) / 'pypeit_files'
     # Select only the pypeit files that are associated with an instrument configuration
     pypeit_files = list(setup_files.rglob(f'{pargs.inst}_?.pypeit'))
     args = []
@@ -171,7 +208,7 @@ if __name__ == "__main__":
     for f in pypeit_files:
         print(f'    {f}')
         new_pargs = copy(pargs)
-        new_pargs.output = os.path.join(pargs.output, os.path.basename(f))
+        new_pargs.output = os.path.join(pargs.output, "redux")
         args.append((f, pargs))
     
 
@@ -180,7 +217,5 @@ if __name__ == "__main__":
         print(f"Launching {num} processes to reduce {len(pypeit_files)} configurations")
 
         with Pool(processes=num) as pool:
-            pool.starmap(func=run_pypeit, iterable=args)
+            pool.starmap(func=run_pypeit_helper, iterable=args)
 
-
-        
