@@ -66,12 +66,12 @@ def run_pypeit_helper(pypeit_file, pargs, cfg):
     f = open(logpath, 'w+')
     
     # Get full output path
-    outputs = os.path.join(pargs.output, os.path.splitext(pypeit_file)[0])
+    # outputs = os.path.join(pargs.output, os.path.splitext(pypeit_file)[0])
     
     # Run the reduction in a subprocess
     args = ['run_pypeit']
     args += [pypeit_file]
-    args += ['-r', str(outputs)]
+    args += ['-r', str(pargs.output)]
     args += ['-o']
     proc = subprocess.run(args, stdout=f, stderr=f)
 
@@ -80,7 +80,7 @@ def run_pypeit_helper(pypeit_file, pargs, cfg):
         print(f"Log can be found at {logpath}")
     else:
         print(f"Reduced {pypeit_file}")
-        alert_RTI(outputs, pargs, cfg)
+        alert_RTI(pargs.output, pargs, cfg)
     f.close()
 
 
@@ -210,9 +210,8 @@ def main():
         print(f'    {f}')
         new_pargs = copy(pargs)
         new_pargs.output = os.path.join(pargs.output, "redux")
-        args.append((f, pargs, cfg))
-        outputs = os.path.join(pargs.output, os.path.splitext(f)[0])
-        print(f"Output file directory for {f}: {outputs}")
+        args.append((f, new_pargs, cfg))
+
     
 
     if not pargs.setup:
