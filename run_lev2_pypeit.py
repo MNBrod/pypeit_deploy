@@ -183,6 +183,7 @@ def main():
     pargs = get_parsed_args()
     
     # Get configuration
+    print(pargs.cfg_file)
     cfg = ConfigParser(pargs.cfg_file)
 
     if pargs.opts:
