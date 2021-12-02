@@ -130,7 +130,8 @@ def alert_RTI(directory, pargs, cfg):
 
 def get_config(cfg_file):
 
-    cfg = ConfigParser(cfg_file)
+    cfg = ConfigParser()
+    cfg.read(cfg_file)
     
     inst_options = cfg['INSTRUMENTS']['keck_inst_names'].split(' ')
     inst_pypeit = cfg['INSTRUMENTS']['pypeit_inst_names'].split(' ')
@@ -183,8 +184,7 @@ def main():
     pargs = get_parsed_args()
     
     # Get configuration
-    print(pargs.cfg_file)
-    cfg = ConfigParser.read(pargs.cfg_file)
+    cfg = get_config(pargs.cfg_file)
 
     if pargs.opts:
         inst_options = "', ".join(cfg.inst_opts.keys())
