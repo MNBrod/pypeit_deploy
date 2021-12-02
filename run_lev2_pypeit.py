@@ -210,6 +210,7 @@ def main():
         print(f'    {f}')
         new_pargs = copy(pargs)
         new_pargs.output = os.path.join(pargs.output, "redux")
+        print(f"          Output is {new_pargs.output}")
         args.append((f, new_pargs, cfg))
 
     
