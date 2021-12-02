@@ -210,6 +210,8 @@ def main():
         new_pargs = copy(pargs)
         new_pargs.output = os.path.join(pargs.output, "redux")
         args.append((f, pargs))
+        outputs = os.path.join(pargs.output, os.path.splitext(f)[0])
+        print(f"Output file directory for {f}: {outputs}")
     
 
     if not pargs.setup:
