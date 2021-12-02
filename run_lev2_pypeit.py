@@ -184,7 +184,7 @@ def main():
     
     # Get configuration
     print(pargs.cfg_file)
-    cfg = ConfigParser(pargs.cfg_file)
+    cfg = ConfigParser.read(pargs.cfg_file)
 
     if pargs.opts:
         inst_options = "', ".join(cfg.inst_opts.keys())
