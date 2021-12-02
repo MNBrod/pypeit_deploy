@@ -75,7 +75,7 @@ def run_pypeit_helper(pypeit_file, pargs, cfg):
     args += ['-o']
     proc = subprocess.run(args, stdout=f, stderr=f)
 
-    if proc.returncode is not 0:
+    if proc.returncode != 0:
         print(f"Error encountered while reducing {pypeit_file}")
         print(f"Log can be found at {logpath}")
     else:
