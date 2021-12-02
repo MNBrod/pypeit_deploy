@@ -26,11 +26,11 @@ def generate_pypeit_files(pargs, cfg):
         Should be the output from get_parsed_args()
     """     
 
-    setup_dir = os.path.join(pargs.input, "pypeit_files")
+    setup_dir = os.path.join(pargs.output, "pypeit_files")
     root = os.path.join(pargs.input, pargs.root)
 
     print(f'Looking for files matching {root}*.fits*')
-    print(f'Outputs will be saved om {setup_dir}')
+    print(f'Outputs will be saved in {setup_dir}')
 
     # Create the setup object
     ps = PypeItSetup.from_file_root(root, pargs.inst, extension=".fits", output_path=setup_dir)
@@ -199,7 +199,7 @@ def main():
     # Create all the pypeit files
     generate_pypeit_files(pargs, cfg)
     
-    setup_files = Path(pargs.input) / 'pypeit_files'
+    setup_files = Path(pargs.output) / 'pypeit_files'
     # Select only the pypeit files that are associated with an instrument configuration
     pypeit_files = list(setup_files.rglob(f'{pargs.inst}_?.pypeit'))
     args = []
