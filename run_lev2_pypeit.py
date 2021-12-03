@@ -17,7 +17,7 @@ from pypeit.pypeitsetup import PypeItSetup
 ###
 
 
-def generate_pypeit_files(pargs, cfg):   
+def generate_pypeit_files(pargs):   
     """Creates the a .pypeit file for every configuration identified in the
     input files
 
@@ -219,7 +219,7 @@ def main():
 
 
     # Create all the pypeit files
-    generate_pypeit_files(pargs, cfg)
+    generate_pypeit_files(pargs)
     
     setup_files = Path(pargs.output) / 'pypeit_files'
     # Select only the pypeit files that are for an instrument configuration
@@ -234,8 +234,6 @@ def main():
         new_pargs.output = os.path.join(pargs.output, "redux")
         print(f"          Output is {new_pargs.output}")
         args.append((f, new_pargs, cfg))
-
-    
 
     if not pargs.setup:
         num = pargs.num_proc if pargs.num_proc else os.cpu_count() - 1
