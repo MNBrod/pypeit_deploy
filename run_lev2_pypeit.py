@@ -181,13 +181,18 @@ def get_parsed_args():
                         ' "kb". If none, will attempt to find a suitable root' +
                         'from the config.')
     
-    parser.add_argument('-n', '--num-proc', dest='num_proc', type=int, help='number of processes to launch')
+    parser.add_argument('-n', '--num-proc', dest='num_proc', type=int,
+                        help='number of processes to launch')
     
-    parser.add_argument('-c', '--config', dest='cfg_file', default='./pypeit_lev2.ini', help='Config file to use')
+    parser.add_argument('-c', '--config', dest='cfg_file',
+                        default='./pypeit_lev2.ini', help='Config file to use')
     
-    parser.add_argument('--setup-only', dest='setup', action='store_true', help="Only create the pypeit files, don't reduce them")
+    parser.add_argument('--setup-only', dest='setup', action='store_true',
+                        help="Only create the pypeit files, don't reduce them")
     
-    parser.add_argument('--instrument-options', dest='opts', action='store_true', help='prints the instruments this script can reduce')
+    parser.add_argument('--instrument-options', dest='opts',
+                        action='store_true',
+                        help='prints the instruments this script can reduce')
     
     pargs =  parser.parse_args()
 
@@ -217,7 +222,7 @@ def main():
     generate_pypeit_files(pargs, cfg)
     
     setup_files = Path(pargs.output) / 'pypeit_files'
-    # Select only the pypeit files that are associated with an instrument configuration
+    # Select only the pypeit files that are for an instrument configuration
     pypeit_files = list(setup_files.rglob(f'{pargs.inst}_?.pypeit'))
     args = []
 
@@ -234,7 +239,7 @@ def main():
 
     if not pargs.setup:
         num = pargs.num_proc if pargs.num_proc else os.cpu_count() - 1
-        print(f"Launching {num} processes to reduce {len(pypeit_files)} configurations")
+        print(f"Launching {num} procs to reduce {len(pypeit_files)} configs")
 
         with Pool(processes=num) as pool:
             pool.starmap(func=run_pypeit_helper, iterable=args)
