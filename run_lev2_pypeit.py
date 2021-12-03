@@ -18,7 +18,8 @@ from pypeit.pypeitsetup import PypeItSetup
 
 
 def generate_pypeit_files(pargs, cfg):   
-    """Creates the a .pypeit file for every configuration identified in the input files
+    """Creates the a .pypeit file for every configuration identified in the
+    input files
 
     Parameters
     ----------
@@ -33,11 +34,13 @@ def generate_pypeit_files(pargs, cfg):
     print(f'Outputs will be saved in {setup_dir}')
 
     # Create the setup object
-    ps = PypeItSetup.from_file_root(root, pargs.inst, extension=".fits", output_path=setup_dir)
+    ps = PypeItSetup.from_file_root(root, pargs.inst,
+                                    extension=".fits", output_path=setup_dir)
     ps.user_cfg = ['[rdx]', 'ignore_bad_headers = True']
 
     # Run the setup
-    ps.run(setup_only=True, calibration_check=False, sort_dir=setup_dir, obslog=True)
+    ps.run(setup_only=True, calibration_check=False, sort_dir=setup_dir,
+           obslog=True)
 
     # Save the setup to .pypeit files
     ps.fitstbl.write_pypeit(setup_dir, configs='all')
@@ -162,14 +165,28 @@ def get_parsed_args():
     default_input = os.getcwd()
     default_output = os.path.join(default_input, "redux")
 
-    parser.add_argument('inst', help=f'Instrument choice. To see availble instruments, use --instrument-options')
+    parser.add_argument('inst', help='Instrument choice. ' + 
+                        'To see availble instruments, use --instrument-options')
 
-    parser.add_argument('-i', '--input-dir', dest='input', default=default_input, help='Path to raw files. Defaults to current directory')
-    parser.add_argument('-o', '--output-dir', dest='output', default=default_output, help='Directory to put output in. Defaults to ./redux')
-    parser.add_argument('-r', '--root', dest='root', help='Base root of the files. E.g. "DE.", "KB.", "kb". If none, will attempt to find a suitable root from the config.')
+    parser.add_argument('-i', '--input-dir', dest='input', 
+                        default=default_input,
+                        help='Path to raw files. Defaults to current directory')
+    
+    parser.add_argument('-o', '--output-dir', dest='output',
+                        default=default_output,
+                        help='Directory to put output in. Defaults to ./redux')
+    
+    parser.add_argument('-r', '--root', dest='root',
+                        help='Base root of the files. E.g. "DE.", "KB.",' + 
+                        ' "kb". If none, will attempt to find a suitable root' +
+                        'from the config.')
+    
     parser.add_argument('-n', '--num-proc', dest='num_proc', type=int, help='number of processes to launch')
+    
     parser.add_argument('-c', '--config', dest='cfg_file', default='./pypeit_lev2.ini', help='Config file to use')
+    
     parser.add_argument('--setup-only', dest='setup', action='store_true', help="Only create the pypeit files, don't reduce them")
+    
     parser.add_argument('--instrument-options', dest='opts', action='store_true', help='prints the instruments this script can reduce')
     
     pargs =  parser.parse_args()
