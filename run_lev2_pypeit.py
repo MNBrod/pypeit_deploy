@@ -110,7 +110,7 @@ def alert_RTI(directory, pargs, cfg):
     
     print(f"Alerting RTI that {directory} is ready for ingestion")
 
-    url = cfg['RTI'].url
+    url = cfg['RTI']['url']
 
     data = {
         'instrument': pargs.inst,
@@ -200,7 +200,6 @@ def get_parsed_args():
 
 
 def main():
-
     
     # Parse the arguments
     pargs = get_parsed_args()
